@@ -30,7 +30,11 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "select1"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          id_incidente as string,",
@@ -59,21 +63,36 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> sql",
 				"source(output(",
-				"          id_incidente as string,",
-				"          tipo as string,",
-				"          severidad as string,",
-				"          fecha_inicio as string,",
+				"          IncidenteId as string,",
+				"          TipoIncidente as string,",
+				"          Severidad as string,",
+				"          FechaHoraInicio as string,",
 				"          hora_inicio as string,",
-				"          fecha_fin as string,",
+				"          FechaHoraFin as string,",
 				"          hora_fin as string,",
-				"          fecha_registro as string,",
+				"          FechaHoraRegistro as string,",
 				"          rutas_afectadas as string,",
-				"          vehiculo_afectado as string,",
-				"          descripcion as string",
+				"          VehiculoId as string,",
+				"          Descripcion as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> xls"
+				"     ignoreNoFilesFound: false) ~> xls",
+				"csv select(mapColumn(",
+				"          IncidenteId = id_incidente,",
+				"          TipoIncidente = tipo,",
+				"          Severidad = severidad,",
+				"          FechaHoraInicio = fecha_inicio,",
+				"          hora_inicio,",
+				"          FechaHoraFin = fecha_fin,",
+				"          hora_fin,",
+				"          FechaHoraRegistro = fecha_registro,",
+				"          rutas_afectadas,",
+				"          VehiculoId = vehiculo_afectado,",
+				"          Descripcion = descripcion",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1"
 			]
 		}
 	}

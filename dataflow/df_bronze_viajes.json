@@ -30,7 +30,11 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "select1"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          id_viaje as string,",
@@ -66,21 +70,36 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> sql",
 				"source(output(",
-				"          id_viaje as string,",
-				"          cod_ruta as string,",
-				"          nro_bus as string,",
-				"          fecha_servicio as string,",
-				"          hora_programada as string,",
-				"          hora_salida as string,",
-				"          hora_llegada as string,",
-				"          pasajeros_estimados as string,",
-				"          km_recorridos as string,",
-				"          estado_viaje as string,",
+				"          ViajeId as string,",
+				"          RutaHistoricaId as string,",
+				"          VehiculoId as string,",
+				"          FechaServicio as string,",
+				"          HoraProgramada as string,",
+				"          HoraSalida as string,",
+				"          HoraLlegada as string,",
+				"          ValidacionesTarjeta as string,",
+				"          KmRecorridos as string,",
+				"          EstadoViaje as string,",
 				"          tipo_metrica as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> xls"
+				"     ignoreNoFilesFound: false) ~> xls",
+				"csv select(mapColumn(",
+				"          ViajeId = id_viaje,",
+				"          RutaHistoricaId = cod_ruta,",
+				"          VehiculoId = nro_bus,",
+				"          FechaServicio = fec_servicio,",
+				"          HoraProgramada = hora_programada,",
+				"          HoraSalida = hora_salida,",
+				"          HoraLlegada = hora_llegada,",
+				"          ValidacionesTarjeta = pasajeros_reportados,",
+				"          KmRecorridos = km_recorridos,",
+				"          EstadoViaje = estado_viaje,",
+				"          tipo_metrica",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1"
 			]
 		}
 	}

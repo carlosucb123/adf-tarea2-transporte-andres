@@ -30,7 +30,14 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "select1"
+				},
+				{
+					"name": "union1"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          cod_ruta as string,",
@@ -45,14 +52,14 @@
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> csv",
 				"source(output(",
-				"          AnioFuente as integer,",
+				"          AnioFuente as string,",
 				"          RutaHistoricaId as string,",
 				"          CodigoRuta as string,",
 				"          NombreRuta as string,",
 				"          Origen as string,",
 				"          Destino as string,",
-				"          VigenciaDesde as date,",
-				"          VigenciaHasta as date,",
+				"          VigenciaDesde as string,",
+				"          VigenciaHasta as string,",
 				"          Estado as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
@@ -60,17 +67,29 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> sql",
 				"source(output(",
-				"          cod_ruta as string,",
-				"          nombre_ruta as string,",
-				"          origen as string,",
-				"          destino as string,",
-				"          fecha_desde as string,",
-				"          fecha_hasta as string,",
-				"          estado as string",
+				"          CodigoRuta as string,",
+				"          NombreRuta as string,",
+				"          Origen as string,",
+				"          Destino as string,",
+				"          VigenciaDesde as string,",
+				"          VigenciaHasta as string,",
+				"          Estado as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> xls"
+				"     ignoreNoFilesFound: false) ~> xls",
+				"csv select(mapColumn(",
+				"          CodigoRuta = cod_ruta,",
+				"          NombreRuta = nombre_ruta,",
+				"          Origen = origen,",
+				"          Destino = destino,",
+				"          VigenciaDesde = fecha_desde,",
+				"          VigenciaHasta = fecha_hasta,",
+				"          Estado = estado",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1, sql union(byName: true)~> union1"
 			]
 		}
 	}

@@ -30,7 +30,11 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "select1"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          fec_servicio as string,",
@@ -62,18 +66,30 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> sql",
 				"source(output(",
-				"          fecha_servicio as string,",
-				"          cod_ruta as string,",
-				"          nro_parada as string,",
-				"          franja as string,",
-				"          estimacion_abordajes as string,",
-				"          estimacion_descensos as string,",
-				"          demanda_no_atendida as string,",
-				"          metodo as string",
+				"          FechaServicio as string,",
+				"          RutaHistoricaId as string,",
+				"          ParadaHistoricaId as string,",
+				"          Franja as string,",
+				"          ValidacionesTarjeta as string,",
+				"          Descensos as string,",
+				"          DemandaNoAtendida as string,",
+				"          Metodo as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> xls"
+				"     ignoreNoFilesFound: false) ~> xls",
+				"csv select(mapColumn(",
+				"          FechaServicio = fec_servicio,",
+				"          RutaHistoricaId = cod_ruta,",
+				"          ParadaHistoricaId = nro_parada,",
+				"          Franja = franja,",
+				"          ValidacionesTarjeta = abordajes_manuales,",
+				"          Descensos = descensos_manuales,",
+				"          DemandaNoAtendida = demanda_no_atendida,",
+				"          Metodo = medicion",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1"
 			]
 		}
 	}

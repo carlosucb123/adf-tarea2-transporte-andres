@@ -30,7 +30,11 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "select1"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          nro_parada as string,",
@@ -62,18 +66,30 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> sql",
 				"source(output(",
-				"          nro_parada as string,",
-				"          nombre_parada as string,",
-				"          zona as string,",
-				"          latitud as string,",
-				"          longitud as string,",
-				"          fecha_desde as string,",
-				"          fecha_hasta as string,",
-				"          estado as string",
+				"          ParadaHistoricaId as string,",
+				"          NombreParada as string,",
+				"          Zona as string,",
+				"          Latitud as string,",
+				"          Longitud as string,",
+				"          VigenciaDesde as string,",
+				"          VigenciaHasta as string,",
+				"          Estado as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> xls"
+				"     ignoreNoFilesFound: false) ~> xls",
+				"csv select(mapColumn(",
+				"          ParadaHistoricaId = nro_parada,",
+				"          NombreParada = nombre_parada,",
+				"          Zona = zona,",
+				"          Latitud = latitud,",
+				"          Longitud = longitud,",
+				"          VigenciaDesde = fecha_desde,",
+				"          VigenciaHasta = fecha_hasta,",
+				"          Estado = estado",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1"
 			]
 		}
 	}

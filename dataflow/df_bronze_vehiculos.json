@@ -30,7 +30,11 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "select1"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          nro_bus as string,",
@@ -59,17 +63,28 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> sql",
 				"source(output(",
-				"          nro_bus as string,",
-				"          placa as string,",
-				"          tipo_bus as string,",
-				"          capacidad as string,",
-				"          fecha_desde as string,",
-				"          fecha_hasta as string,",
-				"          estado as string",
+				"          VehiculoId as string,",
+				"          Placa as string,",
+				"          TipoVehiculo as string,",
+				"          CapacidadEfectiva as string,",
+				"          VigenciaDesde as string,",
+				"          VigenciaHasta as string,",
+				"          Estado as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> xls"
+				"     ignoreNoFilesFound: false) ~> xls",
+				"csv select(mapColumn(",
+				"          VehiculoId = nro_bus,",
+				"          Placa = placa,",
+				"          TipoVehiculo = tipo_bus,",
+				"          CapacidadEfectiva = capacidad,",
+				"          VigenciaDesde = fecha_desde,",
+				"          VigenciaHasta = fecha_hasta,",
+				"          Estado = estado",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1"
 			]
 		}
 	}
