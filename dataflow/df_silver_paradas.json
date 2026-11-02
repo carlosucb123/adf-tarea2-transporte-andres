@@ -15,7 +15,15 @@
 					"name": "source1"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dw_silver_paradas_sql",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "derivedColumn1"
@@ -47,7 +55,41 @@
 				"          Longitud = toDouble(replace(trim(toString(Longitud)), ',', '.')),",
 				"          VigenciaDesde = iif(instr(toString(VigenciaDesde), '/') > 0, toDate(toString(VigenciaDesde), 'dd/MM/yyyy'), toDate(toString(VigenciaDesde), 'yyyy-MM-dd')),",
 				"          VigenciaHasta = iif(instr(toString(VigenciaHasta), '/') > 0, toDate(toString(VigenciaHasta), 'dd/MM/yyyy'), toDate(toString(VigenciaHasta), 'yyyy-MM-dd')),",
-				"          Estado = upper(trim(Estado))) ~> derivedColumn1"
+				"          Estado = upper(trim(Estado))) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          AnioFuente as integer,",
+				"          ParadaHistoricaId as string,",
+				"          CodigoPublicado as string,",
+				"          NombreParada as string,",
+				"          Zona as string,",
+				"          Latitud as decimal(9,6),",
+				"          Longitud as decimal(9,6),",
+				"          VigenciaDesde as date,",
+				"          VigenciaHasta as date,",
+				"          Estado as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          AnioFuente,",
+				"          ParadaHistoricaId,",
+				"          CodigoPublicado,",
+				"          NombreParada,",
+				"          Zona,",
+				"          Latitud,",
+				"          Longitud,",
+				"          VigenciaDesde,",
+				"          VigenciaHasta,",
+				"          Estado",
+				"     )) ~> sink1"
 			]
 		}
 	}
