@@ -9,27 +9,38 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "dw_silver_vehiculos_sql",
+						"referenceName": "dw_bronze_vehiculos_sql",
 						"type": "DatasetReference"
 					},
 					"name": "source1"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dw_silver_vehiculos_sql",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "derivedColumn1"
+				},
+				{
+					"name": "filter1"
 				}
 			],
 			"scriptLines": [
 				"source(output(",
-				"          AnioFuente as integer,",
+				"          AnioFuente as string,",
 				"          VehiculoId as string,",
 				"          Placa as string,",
 				"          TipoVehiculo as string,",
-				"          CapacidadEfectiva as integer,",
-				"          VigenciaDesde as date,",
-				"          VigenciaHasta as date,",
+				"          CapacidadEfectiva as string,",
+				"          VigenciaDesde as string,",
+				"          VigenciaHasta as string,",
 				"          Estado as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
@@ -42,8 +53,68 @@
 				"          TipoVehiculo = upper(trim(TipoVehiculo)),",
 				"          CapacidadEfectiva = toInteger(CapacidadEfectiva),",
 				"          VigenciaDesde = iif(instr(toString(VigenciaHasta), '/') > 0, toDate(toString(VigenciaHasta), 'dd/MM/yyyy'), toDate(toString(VigenciaHasta), 'yyyy-MM-dd')),",
-				"          VigenciaHasta = iif(instr(toString(VigenciaHasta), '/') > 0, toDate(toString(VigenciaHasta), 'dd/MM/yyyy'), toDate(toString(VigenciaHasta), 'yyyy-MM-dd')),",
-				"          Estado = ERROR_FUNCTION('')) ~> derivedColumn1"
+				"          VigenciaHasta = iif(instr(toString(VigenciaHasta), '/') > 0, toDate(toString(VigenciaHasta), 'dd/MM/yyyy'), toDate(toString(VigenciaHasta), 'yyyy-MM-dd'))) ~> derivedColumn1",
+				"derivedColumn1 filter(!isNull(AnioFuente)",
+				"&& trim(toString(AnioFuente)) != ''",
+				"&& upper(trim(toString(AnioFuente))) != 'NULL'",
+				"",
+				"&& !isNull(VehiculoId)",
+				"&& trim(toString(VehiculoId)) != ''",
+				"&& upper(trim(toString(VehiculoId))) != 'NULL'",
+				"",
+				"&& !isNull(Placa)",
+				"&& trim(toString(Placa)) != ''",
+				"&& upper(trim(toString(Placa))) != 'NULL'",
+				"",
+				"&& !isNull(TipoVehiculo)",
+				"&& trim(toString(TipoVehiculo)) != ''",
+				"&& upper(trim(toString(TipoVehiculo))) != 'NULL'",
+				"",
+				"&& !isNull(CapacidadEfectiva)",
+				"&& trim(toString(CapacidadEfectiva)) != ''",
+				"&& upper(trim(toString(CapacidadEfectiva))) != 'NULL'",
+				"",
+				"&& !isNull(VigenciaDesde)",
+				"&& trim(toString(VigenciaDesde)) != ''",
+				"&& upper(trim(toString(VigenciaDesde))) != 'NULL'",
+				"",
+				"&& !isNull(VigenciaHasta)",
+				"&& trim(toString(VigenciaHasta)) != ''",
+				"&& upper(trim(toString(VigenciaHasta))) != 'NULL'",
+				"",
+				"&& !isNull(Estado)",
+				"&& trim(toString(Estado)) != ''",
+				"&& upper(trim(toString(Estado))) != 'NULL') ~> filter1",
+				"filter1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          AnioFuente as integer,",
+				"          VehiculoId as string,",
+				"          Placa as string,",
+				"          TipoVehiculo as string,",
+				"          CapacidadEfectiva as integer,",
+				"          VigenciaDesde as date,",
+				"          VigenciaHasta as date,",
+				"          Estado as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          AnioFuente,",
+				"          VehiculoId,",
+				"          Placa,",
+				"          TipoVehiculo,",
+				"          CapacidadEfectiva,",
+				"          VigenciaDesde,",
+				"          VigenciaHasta,",
+				"          Estado",
+				"     )) ~> sink1"
 			]
 		}
 	}

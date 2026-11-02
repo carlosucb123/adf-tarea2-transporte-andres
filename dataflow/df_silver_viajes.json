@@ -15,10 +15,21 @@
 					"name": "source1"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dw_silver_viajes_sql",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "derivedColumn1"
+				},
+				{
+					"name": "filter1"
 				}
 			],
 			"scriptLines": [
@@ -49,7 +60,41 @@
 				"          HoraLlegada = trim(HoraLlegada),",
 				"          ValidacionesTarjeta = toInteger(trim(ValidacionesTarjeta)),",
 				"          KmRecorridos = toDouble(replace(trim(KmRecorridos), ',', '.')),",
-				"          EstadoViaje = upper(trim(EstadoViaje))) ~> derivedColumn1"
+				"          EstadoViaje = upper(trim(EstadoViaje))) ~> derivedColumn1",
+				"derivedColumn1 filter(!isNull(AnioFuente)",
+				"&& !isNull(ViajeId)",
+				"&& !isNull(RutaHistoricaId)",
+				"&& !isNull(VehiculoId)",
+				"&& !isNull(FechaServicio)",
+				"&& !isNull(HoraProgramada)",
+				"&& !isNull(HoraSalida)",
+				"&& !isNull(HoraLlegada)",
+				"&& !isNull(ValidacionesTarjeta)",
+				"&& !isNull(KmRecorridos)",
+				"&& !isNull(EstadoViaje)) ~> filter1",
+				"filter1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          AnioFuente as integer,",
+				"          ViajeId as string,",
+				"          RutaHistoricaId as string,",
+				"          VehiculoId as string,",
+				"          FechaServicio as date,",
+				"          HoraProgramada as timestamp,",
+				"          HoraSalida as timestamp,",
+				"          HoraLlegada as timestamp,",
+				"          ValidacionesTarjeta as integer,",
+				"          KmRecorridos as decimal(8,1),",
+				"          EstadoViaje as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
 			]
 		}
 	}
