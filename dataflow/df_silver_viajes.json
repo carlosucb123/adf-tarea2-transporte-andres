@@ -13,6 +13,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "source1"
+				},
+				{
+					"dataset": {
+						"referenceName": "dw_bronze_viajes_sql",
+						"type": "DatasetReference"
+					},
+					"name": "source2"
 				}
 			],
 			"sinks": [
@@ -30,6 +37,15 @@
 				},
 				{
 					"name": "filter1"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "filter2"
+				},
+				{
+					"name": "derivedColumn3"
 				}
 			],
 			"scriptLines": [
@@ -50,19 +66,35 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> source1",
+				"source(output(",
+				"          AnioFuente as string,",
+				"          ViajeId as string,",
+				"          RutaHistoricaId as string,",
+				"          VehiculoId as string,",
+				"          FechaServicio as string,",
+				"          HoraProgramada as string,",
+				"          HoraSalida as string,",
+				"          HoraLlegada as string,",
+				"          ValidacionesTarjeta as string,",
+				"          KmRecorridos as string,",
+				"          EstadoViaje as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source2",
 				"source1 derive(AnioFuente = year(toDate(FechaServicio, 'dd/MM/yyyy')),",
 				"          ViajeId = concat('VJ-', toString(year(toDate(FechaServicio, 'dd/MM/yyyy'))), '-', lpad(regexReplace(ViajeId, '[^0-9]', ''), 5, '0')),",
 				"          RutaHistoricaId = lpad(regexReplace(RutaHistoricaId, '[^0-9]', ''), 2, '0'),",
 				"          VehiculoId = concat('V-', lpad(regexReplace(VehiculoId, '[^0-9]', ''), 3, '0')),",
 				"          FechaServicio = toDate(FechaServicio, 'dd/MM/yyyy'),",
-				"          HoraProgramada = trim(HoraProgramada),",
-				"          HoraSalida = trim(HoraSalida),",
-				"          HoraLlegada = trim(HoraLlegada),",
+				"          HoraProgramada = toTimestamp(trim(HoraProgramada), 'HH:mm:ss'),",
+				"          HoraSalida = toTimestamp(trim(HoraSalida), 'HH:mm:ss'),",
+				"          HoraLlegada = toTimestamp(trim(HoraLlegada), 'HH:mm:ss'),",
 				"          ValidacionesTarjeta = toInteger(trim(ValidacionesTarjeta)),",
 				"          KmRecorridos = toDouble(replace(trim(KmRecorridos), ',', '.')),",
 				"          EstadoViaje = upper(trim(EstadoViaje))) ~> derivedColumn1",
-				"derivedColumn1 filter(!isNull(AnioFuente)",
-				"&& !isNull(ViajeId)",
+				"derivedColumn1 filter(!isNull(ViajeId)",
 				"&& !isNull(RutaHistoricaId)",
 				"&& !isNull(VehiculoId)",
 				"&& !isNull(FechaServicio)",
@@ -72,10 +104,21 @@
 				"&& !isNull(ValidacionesTarjeta)",
 				"&& !isNull(KmRecorridos)",
 				"&& !isNull(EstadoViaje)) ~> filter1",
+				"source2 derive(ViajeId = concat(     substring(trim(ViajeId), 1, 0),     iif(         instr(trim(FechaServicio), '-') > 0,         substring(trim(FechaServicio), 1, 4),         substring(trim(FechaServicio), 7, 4)     ),     '-',     trim(ViajeId) ),",
+				"          RutaHistoricaId = toString(RutaHistoricaId),",
+				"          VehiculoId = toString(VehiculoId),",
+				"          FechaServicio = iif(     instr(trim(FechaServicio), '-') > 0,     toDate(trim(FechaServicio), 'yyyy-MM-dd'),     toDate(trim(FechaServicio), 'dd/MM/yyyy') ),",
+				"          HoraSalida = toTimestamp(HoraProgramada, 'HH:mm:ss'),",
+				"          HoraLlegada = toTimestamp(HoraLlegada, 'HH:mm:ss'),",
+				"          ValidacionesTarjeta = toInteger(trim(ValidacionesTarjeta)),",
+				"          KmRecorridos = toDecimal(replace(trim(KmRecorridos), ',', '.'), 8, 1),",
+				"          EstadoViaje = toString(EstadoViaje)) ~> derivedColumn2",
+				"derivedColumn2 filter(!isNull(ViajeId)) ~> filter2",
+				"filter2 derive(HoraSalida = toTimestamp('1900-01-01 00:00:00', 'yyyy-MM-dd HH:mm:ss'),",
+				"          HoraLlegada = toTimestamp('1900-01-01 00:00:00', 'yyyy-MM-dd HH:mm:ss')) ~> derivedColumn3",
 				"filter1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
-				"          AnioFuente as integer,",
 				"          ViajeId as string,",
 				"          RutaHistoricaId as string,",
 				"          VehiculoId as string,",
@@ -94,7 +137,19 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          ViajeId,",
+				"          RutaHistoricaId,",
+				"          VehiculoId,",
+				"          FechaServicio,",
+				"          HoraProgramada,",
+				"          HoraSalida,",
+				"          HoraLlegada,",
+				"          ValidacionesTarjeta,",
+				"          KmRecorridos,",
+				"          EstadoViaje",
+				"     )) ~> sink1"
 			]
 		}
 	}
