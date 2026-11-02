@@ -1,0 +1,54 @@
+{
+	"name": "df_silver_demanda_paradas",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "dw_bronze_demanda_paradas_sql",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          AnioFuente as string,",
+				"          DemandaId as string,",
+				"          FechaServicio as string,",
+				"          RutaHistoricaId as string,",
+				"          ParadaHistoricaId as string,",
+				"          Franja as string,",
+				"          ValidacionesTarjeta as string,",
+				"          Descensos as string,",
+				"          DemandaNoAtendida as string,",
+				"          Metodo as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source1",
+				"source1 derive(AnioFuente = toInteger(year(iif(instr(toString(FechaServicio), '/') > 0, toDate(toString(FechaServicio), 'dd/MM/yyyy'), toDate(toString(FechaServicio), 'yyyy-MM-dd')))),",
+				"          DemandaId = concat('INC-', lpad(regexReplace(toString(DemandaId), '[^0-9]', ''), 5, '0')),",
+				"          FechaServicio = iif(instr(toString(FechaServicio), '/') > 0, toDate(toString(FechaServicio), 'dd/MM/yyyy'), toDate(toString(FechaServicio), 'yyyy-MM-dd')),",
+				"          RutaHistoricaId = lpad(regexReplace(toString(RutaHistoricaId), '[^0-9]', ''), 2, '0'),",
+				"          ParadaHistoricaId = concat('P-', lpad(regexReplace(toString(ParadaHistoricaId), '[^0-9]', ''), 4, '0')),",
+				"          Franja = trim(toString(Franja)),",
+				"          ValidacionesTarjeta = toInteger(ValidacionesTarjeta),",
+				"          Descensos = toInteger(Descensos),",
+				"          DemandaNoAtendida = toInteger(DemandaNoAtendida),",
+				"          Metodo = upper(trim(toString(Metodo)))) ~> derivedColumn1"
+			]
+		}
+	}
+}

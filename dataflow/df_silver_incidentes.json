@@ -1,0 +1,52 @@
+{
+	"name": "df_silver_incidentes",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "dw_bronze_incidentes_sql",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          AnioFuente as string,",
+				"          IncidenteId as string,",
+				"          TipoIncidente as string,",
+				"          Severidad as string,",
+				"          FechaHoraInicio as string,",
+				"          FechaHoraFin as string,",
+				"          FechaHoraRegistro as string,",
+				"          VehiculoId as string,",
+				"          Descripcion as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source1",
+				"source1 derive(AnioFuente = toInteger(year(iif(instr(toString(FechaHoraInicio), '/') > 0, toTimestamp(toString(FechaHoraInicio), 'dd/MM/yyyy HH:mm'), toTimestamp(toString(FechaHoraInicio), 'yyyy-MM-dd HH:mm')))),",
+				"          IncidenteId = concat('INC-', lpad(regexReplace(toString(IncidenteId), '[^0-9]', ''), 5, '0')),",
+				"          TipoIncidente = upper(trim(TipoIncidente)),",
+				"          Severidad = upper(trim(Severidad)),",
+				"          FechaHoraInicio = iif(instr(toString(FechaHoraInicio), '/') > 0, toTimestamp(toString(FechaHoraInicio), 'dd/MM/yyyy HH:mm'), toTimestamp(toString(FechaHoraInicio), 'yyyy-MM-dd HH:mm')),",
+				"          FechaHoraFin = iif(instr(toString(FechaHoraFin), '/') > 0, toTimestamp(toString(FechaHoraFin), 'dd/MM/yyyy HH:mm'), toTimestamp(toString(FechaHoraFin), 'yyyy-MM-dd HH:mm')),",
+				"          FechaHoraRegistro = iif(instr(toString(FechaHoraRegistro), '/') > 0, toTimestamp(toString(FechaHoraRegistro), 'dd/MM/yyyy HH:mm'), toTimestamp(toString(FechaHoraRegistro), 'yyyy-MM-dd HH:mm')),",
+				"          VehiculoId = concat('V-', lpad(regexReplace(toString(VehiculoId), '[^0-9]', ''), 3, '0')),",
+				"          Descripcion = trim(Descripcion)) ~> derivedColumn1"
+			]
+		}
+	}
+}

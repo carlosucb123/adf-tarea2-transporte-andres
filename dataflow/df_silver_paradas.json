@@ -1,0 +1,54 @@
+{
+	"name": "df_silver_paradas",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "dw_bronze_paradas_sql",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          AnioFuente as string,",
+				"          ParadaHistoricaId as string,",
+				"          CodigoPublicado as string,",
+				"          NombreParada as string,",
+				"          Zona as string,",
+				"          Latitud as string,",
+				"          Longitud as string,",
+				"          VigenciaDesde as string,",
+				"          VigenciaHasta as string,",
+				"          Estado as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source1",
+				"source1 derive(AnioFuente = toInteger(year(iif(instr(toString(VigenciaDesde), '/') > 0, toDate(toString(VigenciaDesde), 'dd/MM/yyyy'), toDate(toString(VigenciaDesde), 'yyyy-MM-dd')))),",
+				"          ParadaHistoricaId = concat('P-', lpad(regexReplace(toString(ParadaHistoricaId), '[^0-9]', ''), 4, '0')),",
+				"          CodigoPublicado = trim(CodigoPublicado),",
+				"          NombreParada = trim(NombreParada),",
+				"          Zona = trim(Zona),",
+				"          Latitud = toDouble(replace(trim(toString(Latitud)), ',', '.')),",
+				"          Longitud = toDouble(replace(trim(toString(Longitud)), ',', '.')),",
+				"          VigenciaDesde = iif(instr(toString(VigenciaDesde), '/') > 0, toDate(toString(VigenciaDesde), 'dd/MM/yyyy'), toDate(toString(VigenciaDesde), 'yyyy-MM-dd')),",
+				"          VigenciaHasta = iif(instr(toString(VigenciaHasta), '/') > 0, toDate(toString(VigenciaHasta), 'dd/MM/yyyy'), toDate(toString(VigenciaHasta), 'yyyy-MM-dd')),",
+				"          Estado = upper(trim(Estado))) ~> derivedColumn1"
+			]
+		}
+	}
+}
