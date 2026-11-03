@@ -30,6 +30,9 @@
 				},
 				{
 					"name": "derivedColumn2"
+				},
+				{
+					"name": "filter1"
 				}
 			],
 			"scriptLines": [
@@ -61,7 +64,21 @@
 				"derivedColumn1 derive(VehiculoId = iif(isNull(VehiculoId), '000', VehiculoId),",
 				"          FechaHoraInicio = toTimestamp(FechaHoraInicio, 'dd/MM/yyyy'),",
 				"          FechaHoraFin = toTimestamp(FechaHoraFin, 'dd/MM/yyyy')) ~> derivedColumn2",
-				"derivedColumn2 sink(allowSchemaDrift: true,",
+				"derivedColumn2 filter(!isNull(AnioFuente)",
+				"&& !isNull(IncidenteId)",
+				"&& trim(toString(IncidenteId)) != ''",
+				"&& !isNull(TipoIncidente)",
+				"&& trim(toString(TipoIncidente)) != ''",
+				"&& !isNull(Severidad)",
+				"&& trim(toString(Severidad)) != ''",
+				"&& !isNull(FechaHoraInicio)",
+				"&& !isNull(FechaHoraFin)",
+				"&& !isNull(FechaHoraRegistro)",
+				"&& !isNull(VehiculoId)",
+				"&& trim(toString(VehiculoId)) != ''",
+				"&& !isNull(Descripcion)",
+				"&& trim(toString(Descripcion)) != '') ~> filter1",
+				"filter1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          IncidenteId as string,",

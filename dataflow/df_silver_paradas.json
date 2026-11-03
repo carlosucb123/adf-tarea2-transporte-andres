@@ -27,6 +27,9 @@
 			"transformations": [
 				{
 					"name": "derivedColumn1"
+				},
+				{
+					"name": "filter1"
 				}
 			],
 			"scriptLines": [
@@ -56,7 +59,24 @@
 				"          VigenciaDesde = iif(instr(toString(VigenciaDesde), '/') > 0, toDate(toString(VigenciaDesde), 'dd/MM/yyyy'), toDate(toString(VigenciaDesde), 'yyyy-MM-dd')),",
 				"          VigenciaHasta = iif(instr(toString(VigenciaHasta), '/') > 0, toDate(toString(VigenciaHasta), 'dd/MM/yyyy'), toDate(toString(VigenciaHasta), 'yyyy-MM-dd')),",
 				"          Estado = upper(trim(Estado))) ~> derivedColumn1",
-				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"derivedColumn1 filter(!isNull(AnioFuente)",
+				"&& !isNull(ParadaHistoricaId)",
+				"&& trim(toString(ParadaHistoricaId)) != ''",
+				"&& !isNull(CodigoPublicado)",
+				"&& trim(toString(CodigoPublicado)) != ''",
+				"&& !isNull(NombreParada)",
+				"&& trim(toString(NombreParada)) != ''",
+				"&& !isNull(Zona)",
+				"&& trim(toString(Zona)) != ''",
+				"&& !isNull(Latitud)",
+				"&& trim(toString(Latitud)) != ''",
+				"&& !isNull(Longitud)",
+				"&& trim(toString(Longitud)) != ''",
+				"&& !isNull(VigenciaDesde)",
+				"&& !isNull(VigenciaHasta)",
+				"&& !isNull(Estado)",
+				"&& trim(toString(Estado)) != '') ~> filter1",
+				"filter1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          ParadaHistoricaId as string,",
